@@ -24,6 +24,13 @@ c.ServerProxy.servers = {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'mappath': mappathf,
     },
+    'python-https' : {
+        'command': ['python3', './tests/resources/httpinfo.py', '--keyfile=./tests/resources/key.pem', '--certfile=./tests/resources/cert.pem', '{port}'],
+        'https': True,
+        'cafile': './tests/resources/cert.pem',
+        'keyfile': './tests/resources/key.pem',
+        'certfile': './tests/resources/cert.pem',
+    },
     'python-websocket' : {
         'command': ['python3', './tests/resources/websocket.py', '--port={port}'],
     }

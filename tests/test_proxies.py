@@ -124,6 +124,15 @@ def test_server_proxy_mappath_callable(requestpath, expected):
     assert 'X-Proxycontextpath: /python-http-mappathf\n' in s
 
 
+def test_server_proxy_https():
+    r = request_get(PORT, '/python-https/abc', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /abc?token=')
+    assert 'X-Forwarded-Context: /python-https\n' in s
+    assert 'X-Proxycontextpath: /python-https\n' in s
+
+
 def test_server_proxy_remote():
     r = request_get(PORT, '/newproxy', TOKEN, host='127.0.0.1')
     assert r.code == 200

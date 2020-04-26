@@ -5,3 +5,5 @@ node_modules
 dist
 .vscode
 package-lock.json
+tests/resources/cert.pem
+tests/resources/key.pem
