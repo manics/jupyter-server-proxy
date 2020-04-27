@@ -27,9 +27,9 @@ c.ServerProxy.servers = {
     'python-https' : {
         'command': ['python3', './tests/resources/httpinfo.py', '--keyfile=./tests/resources/key.pem', '--certfile=./tests/resources/cert.pem', '{port}'],
         'https': True,
+        # Self-signed cert, use certificate as ca
         'cafile': './tests/resources/cert.pem',
-        'keyfile': './tests/resources/key.pem',
-        'certfile': './tests/resources/cert.pem',
+        'check_hostname': True,
     },
     'python-websocket' : {
         'command': ['python3', './tests/resources/websocket.py', '--port={port}'],
