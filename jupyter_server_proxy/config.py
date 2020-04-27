@@ -2,6 +2,7 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 from notebook.utils import url_path_join as ujoin
+import ssl
 from traitlets import Bool, Dict, List, Unicode, Union, default
 from traitlets.config import Configurable
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler
@@ -15,7 +16,7 @@ try:
 except ImportError:
     from .utils import Callable
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, ssl_options):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -28,6 +29,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             self.absolute_url = absolute_url
             self.requested_port = port
             self.mappath = mappath
+            self.ssl_options = ssl_options
 
         @property
         def process_args(self):
@@ -90,6 +92,7 @@ def make_handlers(base_url, server_processes):
             sp.absolute_url,
             sp.port,
             sp.mappath,
+            sp.ssl_options,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -101,7 +104,23 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'ssl_options', 'launcher_entry'])
+
+
+def _create_ssl_options(config):
+    # Configure SSL support
+    ssl_options = None
+    if config.get('https', False):
+        ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=config.get('cafile'))
+        certfile = config.get('certfile')
+        keyfile = config.get('keyfile')
+        if certfile or keyfile:
+            ssl_context.load_cert_chain(certfile, keyfile)
+        else:
+            ssl_context.load_default_certs()
+        ssl_context.check_hostname = config.get('check_hostname', False)
+        ssl_options = ssl_context
+    return ssl_options
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -113,6 +132,7 @@ def make_server_process(name, server_process_config):
         absolute_url=server_process_config.get('absolute_url', False),
         port=server_process_config.get('port', 0),
         mappath=server_process_config.get('mappath', {}),
+        ssl_options=_create_ssl_options(server_process_config),
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),

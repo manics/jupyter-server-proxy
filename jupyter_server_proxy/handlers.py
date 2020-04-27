@@ -561,21 +561,17 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return self.proxy(self.port, path)
 
 
-def setup_handlers(web_app, host_whitelist, ssl_options):
+def setup_handlers(web_app, host_whitelist):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
         (url_path_join(web_app.settings['base_url'], r'/proxy/(.*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': False, 'host_whitelist': host_whitelist,
-          'ssl_options': ssl_options}),
+         RemoteProxyHandler, {'absolute_url': False, 'host_whitelist': host_whitelist}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(.*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': True, 'host_whitelist': host_whitelist,
-          'ssl_options': ssl_options}),
+         RemoteProxyHandler, {'absolute_url': True, 'host_whitelist': host_whitelist}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'),
-         LocalProxyHandler, {'absolute_url': False,
-          'ssl_options': ssl_options}),
+         LocalProxyHandler, {'absolute_url': False}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),
-         LocalProxyHandler, {'absolute_url': True,
-          'ssl_options': ssl_options}),
+         LocalProxyHandler, {'absolute_url': True}),
     ])
 
 # vim: set et ts=4 sw=4:
