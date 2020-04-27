@@ -471,16 +471,19 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return 5
 
     async def _http_ready_func(self, p):
-        url = 'http://localhost:{}'.format(self.port)
+        protocol = 'http' if self.ssl_options is None else 'https'
+        url = '{}://localhost:{}'.format(protocol, self.port)
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.get(url) as resp:
+                # Disable ssl verification
+                async with session.get(url, ssl=False) as resp:
                     # We only care if we get back *any* response, not just 200
                     # If there's an error response, that can be shown directly to the user
                     self.log.debug('Got code {} back from {}'.format(resp.status, url))
                     return True
-            except aiohttp.ClientConnectionError:
+            except aiohttp.ClientConnectionError as err:
                 self.log.debug('Connection to {} refused'.format(url))
+                self.log.debug(err)
                 return False
 
     async def ensure_process(self):
