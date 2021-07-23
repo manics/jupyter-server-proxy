@@ -429,6 +429,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     def __init__(self, *args, **kwargs):
         self.requested_port = 0
         self.mappath = {}
+        self.restart_policy = 'on-failure'
         super().__init__(*args, **kwargs)
 
     def initialize(self, state):
@@ -493,12 +494,6 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         # running, or not.
         async with self.state['proc_lock']:
 
-            # Remove 'proc' if it exists and previously exited successfully, if enabled
-            if self.restart_policy == 'always':
-                if 'proc' in self.state:
-                    if self.state['proc'].returncode == 0:
-                        del self.state['proc']
-
             if 'proc' not in self.state:
                 # FIXME: Prevent races here
                 # FIXME: Handle graceful exits of spawned processes here
@@ -510,7 +505,11 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
                 timeout = self.get_timeout()
 
-                proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, ready_timeout=timeout, log=self.log)
+                # https://github.com/jupyterhub/simpervisor/blob/v0.4/simpervisor/process.py#L19
+                always_restart = (self.restart_policy == 'always')
+                proc = SupervisedProcess(self.name, *cmd,
+                    env=server_env, ready_func=self._http_ready_func, ready_timeout=timeout, log=self.log,
+                    always_restart=always_restart)
                 self.state['proc'] = proc
 
                 try:

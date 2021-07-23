@@ -28,7 +28,6 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             self.absolute_url = absolute_url
             self.requested_port = port
             self.mappath = mappath
-            self.restart_policy = restart_policy or 'on-failure'
             if self.restart_policy not in ('always', 'on-failure'):
                 raise ValueError(f'Invalid restart_policy: {self.restart_policy}')
 
